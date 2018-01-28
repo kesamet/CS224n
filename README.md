@@ -4,8 +4,8 @@ My solutions to Stanford CS224n Natural Language Processing with Deep Learning (
 
 ## Requirements
 
-- Python 3.5+
-- Tensorflow 1.3
+- Python 2.7
+- Tensorflow 1.4
 
 
 ## References
