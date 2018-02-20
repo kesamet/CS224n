@@ -44,7 +44,7 @@ class Config:
     embed_size = 50
     hidden_size = 200
     batch_size = 2048
-    n_epochs = 20
+    n_epochs = 10
     lr = 0.001
 
     def __init__(self, output_path=None):
@@ -103,6 +103,7 @@ def make_windowed_data(data, start, end, window_size = 1):
         ### END YOUR CODE
     return windowed_data
 
+
 class WindowModel(NERModel):
     """
     Implements a feedforward neural network with an embedding layer and
@@ -134,7 +135,7 @@ class WindowModel(NERModel):
         ### YOUR CODE HERE (~3-5 lines)
         self.input_placeholder = tf.placeholder(tf.int32, shape=(None, self.config.n_window_features))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None,))
-        self.dropout_placeholder = tf.placeholder(tf.float32)
+        self.dropout_placeholder = tf.placeholder(tf.float32, shape=())
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=1):
@@ -157,7 +158,8 @@ class WindowModel(NERModel):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE (~5-10 lines)
-        feed_dict = {self.input_placeholder: inputs_batch, self.dropout_placeholder: dropout}
+        feed_dict = {self.input_placeholder: inputs_batch,
+                     self.dropout_placeholder: dropout}
         if labels_batch is not None:
             feed_dict[self.labels_placeholder] = labels_batch
         ### END YOUR CODE
@@ -180,7 +182,8 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-        embeddings = tf.reshape(tf.nn.embedding_lookup(self.pretrained_embeddings, self.input_placeholder), [-1, self.config.n_window_features*self.config.embed_size])
+        embedded = tf.Variable(self.pretrained_embeddings)
+        embeddings = tf.reshape(tf.nn.embedding_lookup(embedded, self.input_placeholder), [-1, self.config.n_window_features*self.config.embed_size])
         ### END YOUR CODE
         return embeddings
 
@@ -211,11 +214,12 @@ class WindowModel(NERModel):
         x = self.add_embedding()
         dropout_rate = self.dropout_placeholder
         ### YOUR CODE HERE (~10-20 lines)
-        init = tf.contrib.layers.xavier_initializer()
-        W = tf.get_variable('W', shape=[self.config.n_window_features*self.config.embed_size, self.config.hidden_size], initializer=init)
-        b1 = tf.get_variable('b1', shape=[self.config.hidden_size], initializer=init)
-        U = tf.get_variable('U', shape=[self.config.hidden_size, self.config.n_classes], initializer=init)
-        b2 = tf.get_variable('b2', shape=[self.config.n_classes], initializer=init)
+        xavier_init = tf.contrib.layers.xavier_initializer()
+        zeros_init = tf.zeros_initializer()
+        W = tf.get_variable('W', shape=[self.config.n_window_features*self.config.embed_size, self.config.hidden_size], initializer=xavier_init)
+        b1 = tf.get_variable('b1', shape=[self.config.hidden_size], initializer=zeros_init)
+        U = tf.get_variable('U', shape=[self.config.hidden_size, self.config.n_classes], initializer=xavier_init)
+        b2 = tf.get_variable('b2', shape=[self.config.n_classes], initializer=zeros_init)
         h = tf.nn.relu(tf.matmul(x, W) + b1)
         h_drop = tf.nn.dropout(h, dropout_rate)
         pred = tf.matmul(h_drop, U) + b2

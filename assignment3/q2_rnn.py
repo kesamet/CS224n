@@ -152,7 +152,7 @@ class RNNModel(NERModel):
         self.input_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length, self.config.n_features))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
         self.mask_placeholder = tf.placeholder(tf.bool, shape=(None, self.max_length))
-        self.dropout_placeholder = tf.placeholder(tf.float32)
+        self.dropout_placeholder = tf.placeholder(tf.float32, shape=())
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, mask_batch, labels_batch=None, dropout=1):
@@ -207,7 +207,8 @@ class RNNModel(NERModel):
             embeddings: tf.Tensor of shape (None, max_length, n_features*embed_size)
         """
         ### YOUR CODE HERE (~4-6 lines)
-        embeddings = tf.reshape(tf.nn.embedding_lookup(self.pretrained_embeddings, self.input_placeholder), [-1, self.max_length, Config.n_features*Config.embed_size])
+        embedded = tf.Variable(self.pretrained_embeddings)
+        embeddings = tf.reshape(tf.nn.embedding_lookup(embedded, self.input_placeholder), [-1, self.max_length, Config.n_features*Config.embed_size])
         ### END YOUR CODE
         return embeddings
 
@@ -270,7 +271,7 @@ class RNNModel(NERModel):
         # Initialize state as vector of zeros.
         ### YOUR CODE HERE (~4-6 lines)
         U = tf.get_variable('U', shape=[Config.hidden_size, Config.n_classes], initializer=tf.contrib.layers.xavier_initializer())
-        b2 = tf.get_variable('b2', shape=[Config.n_classes], initializer=tf.constant_initializer(0))
+        b2 = tf.get_variable('b2', shape=[Config.n_classes], initializer=tf.zeros_initializer())
         h = tf.zeros([tf.shape(x)[0], Config.hidden_size])
         ### END YOUR CODE
 
