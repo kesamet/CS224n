@@ -54,9 +54,9 @@ class ParserModel(Model):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE
-        self.input_placeholder = tf.placeholder(tf.int32, (None, self.config.n_features))
-        self.labels_placeholder = tf.placeholder(tf.float32, (None, self.config.n_classes))
-        self.dropout_placeholder = tf.placeholder(tf.float32)
+        self.input_placeholder = tf.placeholder(tf.int32, shape=(None, self.config.n_features))
+        self.labels_placeholder = tf.placeholder(tf.float32, shape=(None, self.config.n_classes))
+        self.dropout_placeholder = tf.placeholder(tf.float32, shape=())
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=0):
@@ -107,7 +107,8 @@ class ParserModel(Model):
             embeddings: tf.Tensor of shape (None, n_features*embed_size)
         """
         ### YOUR CODE HERE
-        embeddings = tf.reshape(tf.nn.embedding_lookup(self.pretrained_embeddings, self.input_placeholder), [-1, self.config.n_features*self.config.embed_size])
+        embedded = tf.Variable(self.pretrained_embeddings)
+        embeddings = tf.reshape(tf.nn.embedding_lookup(embedded, self.input_placeholder), [-1, self.config.n_features*self.config.embed_size])
         ### END YOUR CODE
         return embeddings
 
@@ -135,9 +136,9 @@ class ParserModel(Model):
         x = self.add_embedding()
         ### YOUR CODE HERE
         xavier_initializer = xavier_weight_init()
-        W = tf.Variable(xavier_initializer((self.config.n_features*self.config.embed_size, self.config.hidden_size)))
+        W = xavier_initializer((self.config.n_features*self.config.embed_size, self.config.hidden_size))
         b1 = tf.Variable(tf.zeros([self.config.hidden_size], dtype=tf.float32))
-        U = tf.Variable(xavier_initializer((self.config.hidden_size, self.config.n_classes)))
+        U = xavier_initializer((self.config.hidden_size, self.config.n_classes))
         b2 = tf.Variable(tf.zeros([self.config.n_classes], dtype=tf.float32))
         
         h = tf.nn.relu(tf.matmul(x, W) + b1)
