@@ -1,6 +1,6 @@
 # My added list
 data/**
-result/**
+results/**
 *.py[cod]
 *.sw[op]
 *.gz
